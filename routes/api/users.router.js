@@ -7,9 +7,10 @@ const {
   create,
   changeUserRole,
   documents,
-  getAllUsers,
-  cleanInactiveUsers
 } = require("../../controllers/user.controller.js");
+
+const UserController = require("../../controllers/user.controller.js");
+
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -17,7 +18,7 @@ const upload = multer({ dest: 'uploads/' });
 router.post('/', create);
 router.put('/:uid', isAuthenticated, changeUserRole);
 router.post('/:uid/documents', upload.array('documents'), documents);
-router.get('/', getAllUsers);
-router.delete('/', cleanInactiveUsers);
+router.delete('/inactive', UserController.deleteInactiveUsers);
+router.get('/', UserController.getAllUsers);
 
 module.exports = router;

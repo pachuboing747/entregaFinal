@@ -27,7 +27,6 @@
 
   const cartRouter = require("./routes/carts.router.js")
   const userRouter = require("./routes/api/users.router.js")
-  const resetPasswordRoutes = require('./routes/resetPasswordRoutes.js');
 
   const {currentDirname} = require ("./utils/index.js")
 
@@ -113,8 +112,6 @@
         error: err.stack
       })
     })
-
-    app.use('/reset-password', resetPasswordRoutes)
 
     io.on('connection', socketManager)
 

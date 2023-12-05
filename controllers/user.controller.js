@@ -1,13 +1,11 @@
 const ManagerFactory = require('../dao/managers/manager.Mongo/factory.manager.js');
-const express = require('express');
-const multer = require('multer');
 const UserModel = require('../dao/models/user.model.js');
-const MailSender = require('../service/mail.sender.js'); 
 const nodemailer = require('nodemailer');
+const {mail} = require ("../config/config.js")
 
-require('dotenv').config();
 
 const userManager = ManagerFactory.getManagerInstance('users');
+
 
 const create = async (req, res) => {
   const { body } = req;
@@ -78,33 +76,15 @@ const documents = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await userManager.getUsers();
-    const simplifiedUsers = users.map(user => ({
-      name: user.firstname + ' ' + user.lastname,
+    const allUsers = await userManager.getAll();
+  
+    const simplifiedUsers = allUsers.map(user => ({
+      name: user.name,
       email: user.email,
       role: user.role,
     }));
 
-    res.json(simplifiedUsers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-};
-
-const cleanInactiveUsers = async (req, res) => {
-
-  try {
-    const deletedUsers = await userManager.cleanInactiveUsers();
-   
-    for (const user of deletedUsers) {
-      const resetLink = 'http://localhost:8080/reset-password';
-      const mailSender = new MailSender();
-      await mailSender.send(user.email, resetLink);
-
-    }
-
-    res.json({ message: 'Usuarios inactivos eliminados con éxito' });
+    res.status(200).json(simplifiedUsers);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error interno del servidor' });
@@ -112,33 +92,51 @@ const cleanInactiveUsers = async (req, res) => {
 };
 
 
-async function sendEmail(to, subject, text) {
-  try {
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    let info = await transporter.sendMail({
-      from: "pachuboing747@hotmail.com",
-      to: to,
-      subject: subject,
-      text: text,
-    });
-
-    console.log('Correo electrónico enviado: %s', info.messageId);
-  } catch (error) {
-    console.error('Error al enviar el correo electrónico:', error);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  port: 587,
+  auth: {
+     user: mail.GMAIL_ADDRESS,
+     pass: mail.GMAIL_PWD
   }
-}
+});
+
+const deleteInactiveUsers = async (req, res) => {
+  try {
+    const inactiveThreshold = new Date();
+    inactiveThreshold.setDate(inactiveThreshold.getDate() - 2);
+
+    const inactiveUsers = await userManager.find({ lastConnection: { $lt: inactiveThreshold } });
+
+    const deletionPromises = inactiveUsers.map(async (user) => {
+      const mailOptions = {
+        from: 'tu_correo@gmail.com',
+        to: user.email,
+        subject: 'Eliminación de cuenta por inactividad',
+        text: `Hola ${user.name},\nTu cuenta ha sido eliminada por inactividad en nuestro sistema.`,
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      await userManager.delete(user._id);
+    });
+
+    await Promise.all(deletionPromises);
+
+    res.status(200).json({ message: 'Usuarios inactivos eliminados correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+
 
 module.exports = {
   create,
   changeUserRole,
   documents,
   getAllUsers,
-  cleanInactiveUsers,
+  deleteInactiveUsers,
 };
+

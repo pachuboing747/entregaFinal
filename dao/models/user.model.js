@@ -23,7 +23,6 @@ const schema = new Schema({
       reference: String,
     },
   ],
-  codigoReset: String
 })
 
 const userModel = model('users', schema)

@@ -31,7 +31,6 @@
     "express-session": "^1.17.3",
     "faker": "^6.6.6",
     "faker-js": "^1.0.0",
-    "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.4.1",
     "mongoose-paginate-v2": "^1.7.31",
     "multer": "^1.4.5-lts.1",
