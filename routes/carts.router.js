@@ -9,9 +9,9 @@ const {
   getById,
   findById,
   deleteAll,
-  purchase
+  purchase,
+  removeProductFromCart
 } = require ("../controllers/cart.controller.js")
-
 
 const router = Router();
 
@@ -24,6 +24,6 @@ router.put("/:cid", getById);
 router.put('/:cid/products/:pid', findById);
 router.delete("/:cid", deleteAll);
 router.get("/:cid/purchase", purchase);
-
+router.delete('/remove-product/:pid', removeProductFromCart);
 
 module.exports = router;

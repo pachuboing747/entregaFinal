@@ -51,30 +51,32 @@ class CartManager {
 
     }
 
-    async deleteProductCart(cid, idProduct){
-
-        let cart = await cartModel.findOne({ _id: cid })
-
-        const productId = await productModel.findOne({ _id: idProduct })
-
-        const productQ = cart.products.find(pr => pr.product == idProduct)
-        
-        if(productQ.quantity > 1){
-            productQ.quantity = productQ.quantity - 1
-
-            cart.save()
-        } else {
-            const p = cart.products.find(pr => pr.product.equals(productId._id))
+    async deleteProductCart(cid, idProduct) {
+        try {
+            const cart = await cartModel.findOne({ _id: cid });
     
-            const indexProductDelete = cart.products.findIndex(function(obj) {
-                return obj._id === p._id
-            })
-    
-            if(indexProductDelete !== -1){
-                cart.products.splice(indexProductDelete, 1)
+            if (!cart) {
+                console.error("El carrito no existe.");
+                return;
             }
     
-            cart.save()
+            const productId = await productModel.findOne({ _id: idProduct });
+            const productQ = cart.products.find(pr => pr.product.equals(idProduct));
+
+            if (productQ) {
+                if (productQ.quantity > 1) {
+                    productQ.quantity = productQ.quantity - 1;
+                } else {
+                    cart.products = cart.products.filter(pr => !pr.product.equals(productId._id));
+                }
+                console.log("Producto eliminado del carrito");
+                await cart.save();
+            } else {
+                console.error("Producto no encontrado en el carrito.");
+            }
+        } catch (error) {
+            console.error("Error al eliminar el producto del carrito", error);
+            throw error;
         }
     }
 
@@ -109,6 +111,17 @@ class CartManager {
         cart.save()
     }
 
+    async getPopulate(pid) {
+        try {
+          const cart = await this.model.findById(pid).populate("products.product");
+          return cart;
+        } catch (error) {
+          console.error("Error al obtener el carrito:", error);
+          return null;
+        }
+    }
+      
+    
 }
 
 module.exports = new CartManager()

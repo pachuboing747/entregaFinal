@@ -413,6 +413,17 @@ const  deleteOrder  = async (req, res) => {
   }
 }
 
+const removeProductFromCart = async (req, res) => {
+  try {
+    const { pid } = req.params; // cid es el id del carrito, pid es el id del producto
+    await cartsManager.deleteProductCart(pid);
+    res.redirect('/carts');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el producto del carrito');
+  }
+};
+
 
 module.exports = {
   getAll,
@@ -428,5 +439,6 @@ module.exports = {
   updateCart,
   getOrders,
   getOrderById,
-  deleteOrder
+  deleteOrder,
+  removeProductFromCart
 }

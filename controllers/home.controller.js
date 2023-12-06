@@ -73,10 +73,10 @@ const getById = async (req, res) => {
       const { productId, title, price, description, stock, thumbnail, code } = req.body;
       const userId = req.user.id;
   
-      let cart = await cartsManager.getById(userId);
+      let cart = await cartsManager.getCartById (userId);
   
       if (!cart) {
-        const newCart = await cartsManager.create({ user: userId });
+        const newCart = await cartsManager.addCart({ user: userId });
         cart = newCart;
       }
   
